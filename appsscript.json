@@ -1,0 +1,14 @@
+{
+  "timeZone": "America/Los_Angeles",
+  "dependencies": {
+  },
+  "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8",
+  "sheets": {
+    "macros": [{
+      "menuName": "Reset Sheets",
+      "functionName": "ResetSheets",
+      "defaultShortcut": "Ctrl+Alt+Shift+1"
+    }]
+  }
+}

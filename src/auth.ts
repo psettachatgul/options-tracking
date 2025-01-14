@@ -6,7 +6,7 @@ export const auth = {
   access_token_refresh_interval: 1800
 };
 
-const refreshAccessTokenHelper = async () => {
+export const refreshAccessToken = async () => {
 
   auth.refresh_token = process.env.CS_REFRESH_TOKEN!;
 
@@ -29,19 +29,16 @@ const refreshAccessTokenHelper = async () => {
       );
 
       auth.access_token = access_token;
-      auth.access_token_refresh_interval = (parseInt(expires_in) - 300) * 1000 // ms;
+      auth.access_token_refresh_interval = (parseInt(expires_in) - 600) * 1000 // ms;
+      console.log(`********* refreshed access token... next refresh in ${auth.access_token_refresh_interval} ms`);
+
+      setTimeout(() => {
+        refreshAccessToken();
+      }, auth.access_token_refresh_interval);
 
     } catch (ex) {
       console.error(ex);
       throw ex;
     }
   }
-};
-
-export const refreshAccessToken = async () => {
-
-  await refreshAccessTokenHelper();
-
-  setInterval(refreshAccessTokenHelper, auth.access_token_refresh_interval);
-
 };

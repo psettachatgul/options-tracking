@@ -37,8 +37,8 @@ export const getPriceHistory = (symbol: string) => {
           frequencyType: 'minute',
           frequency: 1,
           endDate: Date.now(),
-          needExtendedHoursData: false,
-          needPreviousClose: false
+          needExtendedHoursData: true,
+          needPreviousClose: false,
         },
         headers: {
           Authorization: `Bearer ${access_token}`

@@ -18,6 +18,7 @@ export type TSingleQuote = {
       bidPrice: number,
       tradeTime: number,
       lastPrice: number,
+      closePrice: number
     }
   }
 }

@@ -122,7 +122,8 @@ export const getLastBid = (symbol: string) => {
     const sheetData = [
       [`Last Updated ${(new Date()).toString()}`],
       ['Last Bid', quote.bidPrice],
-      ['Last Bid Time', (new Date(quote.tradeTime)).toString()]
+      ['Last Bid Time', (new Date(quote.tradeTime)).toString()],
+      ['Previous Close', quote.closePrice]
     ];
 
     blackScholesParams.lastBid = quote.bidPrice;
@@ -226,7 +227,7 @@ export const getYield10Yr = (symbol: string) => {
       [`Intrest 10 Year Treasury Bond (${(new Date()).toString()})`, blackScholesParams.US10YrInt],
     ];
 
-    setSpreadsheetData(process.env.GOOGLE_SHEET_ID!, `${symbol} Last Bid!A5`, sheetData);
+    setSpreadsheetData(process.env.GOOGLE_SHEET_ID!, `${symbol} Last Bid!A6`, sheetData);
 
   }, interval);
 }

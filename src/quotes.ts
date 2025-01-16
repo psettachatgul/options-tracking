@@ -6,6 +6,7 @@ import { addDays, format } from 'date-fns';
 import { auth } from './auth';
 import { blackScholesParams } from './black-scholes-params';
 import { BlackScholes } from '@uqee/black-scholes';
+import { toZonedTime } from 'date-fns-tz'
 
 const interval = 10000;
 
@@ -143,8 +144,8 @@ export const getOptionsQuotes = (symbol: string, contractType: 'CALL' | 'PUT') =
           contractType,
           strikeCount: 7,
           includeUnderlyingQuote: false,
-          fromDate: format(Date.now(), 'yyyy-MM-dd'),
-          toDate: format(addDays(Date.now(), 10), 'yyyy-MM-dd')
+          fromDate: format(toZonedTime(Date.now(), 'America/New_York'), 'yyyy-MM-dd'),
+          toDate: format(addDays(toZonedTime(Date.now(), 'America/New_York'), 10), 'yyyy-MM-dd')
         },
         headers: {
           Authorization: `Bearer ${access_token}`

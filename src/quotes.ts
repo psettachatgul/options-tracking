@@ -26,26 +26,35 @@ export const trackSymbol = (symbol: string) => {
 export const getPriceHistory = (symbol: string) => {
 
   return setInterval(async () => {
+
     const access_token = auth.access_token;
 
-    const { data: { candles = [] } = {} } = await axios.get<TPriceHistoryResponse>(
-      'https://api.schwabapi.com/marketdata/v1/pricehistory',
-      {
-        params: {
-          symbol,
-          periodType: 'day',
-          period: 4,
-          frequencyType: 'minute',
-          frequency: 1,
-          endDate: Date.now(),
-          needExtendedHoursData: true,
-          needPreviousClose: false,
-        },
-        headers: {
-          Authorization: `Bearer ${access_token}`
-        }
+    const { data: { candles = [] } = {} } = await (async () => {
+      try {
+        return await axios.get<TPriceHistoryResponse>(
+          'https://api.schwabapi.com/marketdata/v1/pricehistory',
+          {
+            params: {
+              symbol,
+              periodType: 'day',
+              period: 4,
+              frequencyType: 'minute',
+              frequency: 1,
+              endDate: Date.now(),
+              needExtendedHoursData: true,
+              needPreviousClose: false,
+            },
+            headers: {
+              Authorization: `Bearer ${access_token}`
+            }
+          }
+        );
+      } catch (err) {
+        console.error(err);
+        return { data: undefined };
       }
-    );
+
+    })();
 
     const priceHistory = candles.reduce<{
       data: Array<Date | string | number>[],
@@ -105,29 +114,38 @@ export const getLastBid = (symbol: string) => {
   return setInterval(async () => {
     const access_token = auth.access_token;
 
-    const { data } = await axios.get<TSingleQuote>(
-      `https://api.schwabapi.com/marketdata/v1/${symbol}/quotes`,
-      {
-        params: {
-          fields: 'quote',
-        },
-        headers: {
-          Authorization: `Bearer ${access_token}`
-        }
+    const { data } = await ((async () => {
+      try {
+        return await axios.get<TSingleQuote>(
+          `https://api.schwabapi.com/marketdata/v1/${symbol}/quotes`,
+          {
+            params: {
+              fields: 'quote',
+            },
+            headers: {
+              Authorization: `Bearer ${access_token}`
+            }
+          }
+        );
+      } catch (err) {
+        console.error(err);
+        return { data: { [symbol]: { quote: undefined } } };
       }
-    );
+    }))();
 
     const { quote } = get(data, symbol);
 
-    const sheetData = [
-      [`Last Updated ${(new Date()).toString()}`],
-      ['Last Bid', quote.bidPrice],
-      ['Last Bid Time', (new Date(quote.tradeTime)).toString()],
-      ['Previous Close', quote.closePrice]
-    ];
+    if (quote) {
+      const sheetData = [
+        [`Last Updated ${(new Date()).toString()}`],
+        ['Last Bid', quote.bidPrice],
+        ['Last Bid Time', (new Date(quote.tradeTime)).toString()],
+        ['Previous Close', quote.closePrice]
+      ];
 
-    blackScholesParams.lastBid = quote.bidPrice;
-    setSpreadsheetData(process.env.GOOGLE_SHEET_ID!, `${symbol} Last Bid!A1`, sheetData);
+      blackScholesParams.lastBid = quote.bidPrice;
+      setSpreadsheetData(process.env.GOOGLE_SHEET_ID!, `${symbol} Last Bid!A1`, sheetData);
+    }
 
   }, interval);
 };
@@ -137,22 +155,29 @@ export const getOptionsQuotes = (symbol: string, contractType: 'CALL' | 'PUT') =
   return setInterval(async () => {
     const access_token = auth.access_token;
 
-    const { data: { callExpDateMap = {}, putExpDateMap = {} } = {} } = await axios.get<TOptionChain>(
-      'https://api.schwabapi.com/marketdata/v1/chains',
-      {
-        params: {
-          symbol,
-          contractType,
-          strikeCount: 7,
-          includeUnderlyingQuote: false,
-          fromDate: format(toZonedTime(Date.now(), 'America/New_York'), 'yyyy-MM-dd'),
-          toDate: format(addDays(toZonedTime(Date.now(), 'America/New_York'), 10), 'yyyy-MM-dd')
-        },
-        headers: {
-          Authorization: `Bearer ${access_token}`
-        }
+    const { data: { callExpDateMap = {}, putExpDateMap = {} } = {} } = await (async () => {
+      try {
+        return await axios.get<TOptionChain>(
+          'https://api.schwabapi.com/marketdata/v1/chains',
+          {
+            params: {
+              symbol,
+              contractType,
+              strikeCount: 7,
+              includeUnderlyingQuote: false,
+              fromDate: format(toZonedTime(Date.now(), 'America/New_York'), 'yyyy-MM-dd'),
+              toDate: format(addDays(toZonedTime(Date.now(), 'America/New_York'), 10), 'yyyy-MM-dd')
+            },
+            headers: {
+              Authorization: `Bearer ${access_token}`
+            }
+          }
+        );
+      } catch (err) {
+        console.error(err);
+        return { data: { callExpDateMap: undefined, putExpDateMap: undefined } };
       }
-    );
+    })();
 
     const expDateMap = contractType === 'CALL' ? callExpDateMap : putExpDateMap;
 
@@ -208,26 +233,37 @@ export const getYield10Yr = (symbol: string) => {
   return setInterval(async () => {
     const access_token = auth.access_token;
 
-    const { data } = await axios.get<TSingleQuote>(
-      `https://api.schwabapi.com/marketdata/v1/${encodeURIComponent(process.env.USTreasurySymbol!)}/quotes`,
-      {
-        params: {
-          fields: 'quote',
-        },
-        headers: {
-          Authorization: `Bearer ${access_token}`
-        }
+    const { data } = await (async () => {
+      try {
+        return await axios.get<TSingleQuote>(
+          `https://api.schwabapi.com/marketdata/v1/${encodeURIComponent(process.env.USTreasurySymbol!)}/quotes`,
+          {
+            params: {
+              fields: 'quote',
+            },
+            headers: {
+              Authorization: `Bearer ${access_token}`
+            }
+          }
+        );
       }
-    );
+      catch (err) {
+        console.error(err);
+        return { data: { [symbol]: { quote: undefined } } };
+      }
+    })();
 
     const { quote } = get(data, process.env.USTreasurySymbol!);
-    blackScholesParams.US10YrInt = (quote.lastPrice / 1000.0)
+    if (quote) {
+      blackScholesParams.US10YrInt = (quote.lastPrice / 1000.0)
 
-    const sheetData = [
-      [`Intrest 10 Year Treasury Bond (${(new Date()).toString()})`, blackScholesParams.US10YrInt],
-    ];
+      const sheetData = [
+        [`Intrest 10 Year Treasury Bond (${(new Date()).toString()})`, blackScholesParams.US10YrInt],
+      ];
 
-    setSpreadsheetData(process.env.GOOGLE_SHEET_ID!, `${symbol} Last Bid!A6`, sheetData);
+      setSpreadsheetData(process.env.GOOGLE_SHEET_ID!, `${symbol} Last Bid!A6`, sheetData);
+    }
+
 
   }, interval);
 }

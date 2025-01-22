@@ -205,6 +205,7 @@ export const getOptionsQuotes = (symbol: string, contractType: 'CALL' | 'PUT') =
               option.last,
               option.totalVolume,
               option.volatility,
+              option.ask - option.bid,
               option.description,
               option.daysToExpiration,
               option.inTheMoney ? 'Yes' : 'No',
@@ -218,7 +219,7 @@ export const getOptionsQuotes = (symbol: string, contractType: 'CALL' | 'PUT') =
 
         return _sheetData;
       },
-      [['Expiration Date', 'Strike', 'Bid', 'Ask', 'Last', 'Volume', 'Volatility', 'Description', 'Days To Expiration', 'In The Money', 'Black Scholes Price', 'Diff']]
+      [['Expiration Date', 'Strike', 'Bid', 'Ask', 'Last', 'Volume', 'Volatility', 'Spread', 'Description', 'Days To Expiration', 'In The Money', 'Black Scholes Price', 'Diff']]
     );
 
     sheetData.unshift([`Last Updated ${(new Date()).toString()}`]);

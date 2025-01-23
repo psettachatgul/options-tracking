@@ -1,6 +1,9 @@
-import { google } from 'googleapis';
+import { google, sheets_v4 } from 'googleapis';
 import { GaxiosError } from 'gaxios';
 import get from 'lodash/get';
+import isNumber from 'lodash/isNumber';
+import set from 'lodash/set';
+import { TSpreadsheetUpdate } from './types';
 
 export const setupGoogleAuth = () => {
 
@@ -59,22 +62,80 @@ export const getSpreadsheetData = async (
 
 };
 
+const sheetIndex: Record<string, Record<string, number>> = {};
+
+export const getSheetId = async (spreadsheetId: string, sheetName: string) => {
+
+  const sheetId = await (async () => {
+    if (sheetIndex[spreadsheetId]?.[sheetName]) return sheetIndex[spreadsheetId][sheetName];
+
+    // get all sheetIds
+    const sheets = google.sheets({ version: 'v4' });
+
+    const spreadSheetInfo = await sheets.spreadsheets.get({ spreadsheetId, fields: 'sheets.properties(sheetId,title)' });
+    const _sheets = spreadSheetInfo.data.sheets;
+
+    _sheets?.forEach((_sheet) => {
+      if (_sheet.properties?.title && _sheet.properties?.sheetId) {
+        const title = _sheet.properties.title;
+        const sheetId = _sheet.properties?.sheetId;
+        set(sheetIndex, `${spreadsheetId}.${title}`, sheetId);
+      }
+    });
+
+    return sheetIndex[spreadsheetId][sheetName];
+  })();
+
+  return sheetId;
+};
+
 export const setSpreadsheetData = async (
   spreadsheetId: string,
-  range: string,
-  values: unknown[][],
+  updates: TSpreadsheetUpdate[]
 ) => {
   const sheets = google.sheets({ version: 'v4' });
 
+
+
+  const requests: sheets_v4.Schema$Request[] = [];
+  for (const update of updates) {
+
+    const rows: sheets_v4.Schema$RowData[] = update.values.map((rowValues) => {
+
+      const values: sheets_v4.Schema$CellData[] = rowValues.map((cellValue) => {
+
+        if (isNumber(cellValue)) {
+          return { userEnteredValue: { numberValue: cellValue } };
+        }
+
+        return { userEnteredValue: { stringValue: cellValue as string } };
+      });
+
+      return {
+        values
+      }
+    });
+
+    requests.push({
+      updateCells: {
+        fields: 'userEnteredValue',
+        rows,
+        start: {
+          sheetId: await getSheetId(spreadsheetId, update.sheetName),
+          rowIndex: update.range.rowIndex,
+          columnIndex: update.range.columnIndex
+        }
+      }
+    });
+  }
+
   await googleSheetsRetry({
     cb: async () => {
-      await sheets.spreadsheets.values.update({
-        spreadsheetId: spreadsheetId,
-        range: range,
-        valueInputOption: 'RAW',
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId,
         requestBody: {
-          values,
-        },
+          requests
+        }
       });
     },
   });

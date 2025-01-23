@@ -9,6 +9,9 @@
       "menuName": "Reset Sheets",
       "functionName": "ResetSheets",
       "defaultShortcut": "Ctrl+Alt+Shift+1"
+    }, {
+      "menuName": "Reset Sheets 1",
+      "functionName": "ResetSheets1"
     }]
   }
 }

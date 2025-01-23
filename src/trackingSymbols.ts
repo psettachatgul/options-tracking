@@ -1,0 +1,1 @@
+export type TSymbol = 'SPY' | 'GME' | '$TNX';

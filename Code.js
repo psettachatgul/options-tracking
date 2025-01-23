@@ -221,3 +221,26 @@ function NORMDIST_(d) {
   
   return (1/2)*(1+sign*erf);
 }
+
+/**
+ * @customfunction
+ */
+function ResetSheets() {
+  var spreadsheet = SpreadsheetApp.getActive();
+  const symbols = ['SPY', 'GME']
+  spreadsheet.setActiveSheet(spreadsheet.getSheetByName('$TNX Comparison'), true);
+  spreadsheet.getRange("A3:D").clearContent();
+
+  spreadsheet.setActiveSheet(spreadsheet.getSheetByName('$TNX Price History'), true);
+  spreadsheet.getRange("A6:C").clearContent();
+
+  for(const _symbol of symbols) {
+    spreadsheet.setActiveSheet(spreadsheet.getSheetByName(`${_symbol} Price History`), true);
+    spreadsheet.getRange("A6:C").clearContent();
+    spreadsheet.setActiveSheet(spreadsheet.getSheetByName(`${_symbol} CALL`), true);
+    spreadsheet.getRange("A1:M").clearContent();
+    spreadsheet.setActiveSheet(spreadsheet.getSheetByName(`${_symbol} PUT`), true);
+    spreadsheet.getRange("A1:M").clearContent();
+  }
+
+};

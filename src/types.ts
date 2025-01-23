@@ -1,3 +1,15 @@
+export type TBlackScholesParams = {
+  lastBid: number,
+  volatility: number,
+  US10YrInt: number
+};
+
+export type TSpreadsheetUpdate = {
+  sheetName: string,
+  range: { rowIndex: number, columnIndex: number },
+  values: unknown[][],
+};
+
 export type TCandle = {
   open: number,
   high: number,

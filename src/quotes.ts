@@ -190,7 +190,7 @@ export const getOptionsQuotes = (symbols: TSymbol[], contractType: 'CALL' | 'PUT
               params: {
                 symbol,
                 contractType,
-                strikeCount: 7,
+                strikeCount: 30,
                 includeUnderlyingQuote: false,
                 fromDate: format(toZonedTime(Date.now(), 'America/New_York'), 'yyyy-MM-dd'),
                 toDate: format(addDays(toZonedTime(Date.now(), 'America/New_York'), 10), 'yyyy-MM-dd')
